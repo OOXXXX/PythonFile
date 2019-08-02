@@ -1,2 +1,2 @@
 # PythonFile
-A repository to contain python files
+A repository to manage python files
