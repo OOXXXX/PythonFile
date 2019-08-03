@@ -11,11 +11,16 @@ ops = r'+-*/'
 
 def test24(s):
     result = []
-    
+    def check(exp):
+        try:
+            #异常处理排零情况
+            return int(eval(exp)) == 24
+        except:
+            return False
     #枚举4个数的所有可能顺序
     for a in permutations(s):
         #查找能实现24的表达式
-        t = [exp % (a[0], op1, a[1], op2, a[2], op3, a[3]) for op1 in ops for op2 in ops for op3 in ops for exp in exps]
+        t = [exp % (a[0], op1, a[1], op2, a[2], op3, a[3]) for op1 in ops for op2 in ops for op3 in ops for exp in exps if check(exp %(a[0], op1, a[1], op2, a[2], op3, a[3]))]
         if t:
             result.append(t)
     return result
