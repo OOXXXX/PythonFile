@@ -1,0 +1,3 @@
+[console_scripts]
+musicbox = NEMbox.__main__:start
+
