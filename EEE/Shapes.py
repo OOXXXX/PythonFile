@@ -110,8 +110,44 @@ class Cube(Square):
 
 
 def create_shape():
-    # 通过用户输入创建形状实例
-    pass
+    print("Choose the type of shape to create:")
+    print("1. Point")
+    print("2. Circle")
+    print("3. Cylinder")
+    print("4. Sphere")
+    print("5. Rectangle")
+    print("6. Square")
+    print("7. Cube")
+    shape_choice = input("Enter your choice: ")
+
+    if shape_choice == '1':
+        x = float(input("Enter x coordinate: "))
+        y = float(input("Enter y coordinate: "))
+        return Point(x, y)
+    elif shape_choice == '2':
+        radius = float(input("Enter radius: "))
+        return Circle(radius)
+    elif shape_choice == '3':
+        radius = float(input("Enter radius: "))
+        height = float(input("Enter height: "))
+        return Cylinder(radius, height)
+    elif shape_choice == '4':
+        radius = float(input("Enter radius: "))
+        return Sphere(radius)
+    elif shape_choice == '5':
+        length = float(input("Enter length: "))
+        width = float(input("Enter width: "))
+        return Rectangle(length, width)
+    elif shape_choice == '6':
+        side = float(input("Enter side length: "))
+        return Square(side)
+    elif shape_choice == '7':
+        side = float(input("Enter side length: "))
+        return Cube(side)
+    else:
+        print("Invalid choice.")
+        return None
+
 
 def print_shapes(shapes):
     # 打印形状列表
@@ -119,12 +155,60 @@ def print_shapes(shapes):
         print(shape.toString())
 
 def remove_shape(shapes):
-    # 从列表中删除形状
-    pass
+    if not shapes:
+        print("No shapes to remove.")
+        return
+
+    print_shapes(shapes)
+    try:
+        index = int(input("Enter the index of the shape to remove (starting from 0): "))
+        if 0 <= index < len(shapes):
+            del shapes[index]
+        else:
+            print("Invalid index.")
+    except ValueError:
+        print("Please enter a valid integer.")
+
 
 def modify_shape(shapes):
-    # 修改特定的形状
-    pass
+    if not shapes:
+        print("No shapes to modify.")
+        return
+
+    print_shapes(shapes)
+    try:
+        index = int(input("Enter the index of the shape to modify (starting from 0): "))
+        if 0 <= index < len(shapes):
+            shape = shapes[index]
+            if isinstance(shape, Point):
+                x = float(input("Enter new x coordinate: "))
+                y = float(input("Enter new y coordinate: "))
+                shape.x = x
+                shape.y = y
+            elif isinstance(shape, Circle) or isinstance(shape, Sphere):
+                radius = float(input("Enter new radius: "))
+                shape.radius = radius
+            elif isinstance(shape, Cylinder):
+                radius = float(input("Enter new radius: "))
+                height = float(input("Enter new height: "))
+                shape.radius = radius
+                shape.height = height
+            elif isinstance(shape, Rectangle) or isinstance(shape, Square):
+                length = float(input("Enter new length: "))
+                width = float(input("Enter new width: "))
+                shape.length = length
+                shape.width = width
+            elif isinstance(shape, Cube):
+                side = float(input("Enter new side length: "))
+                shape.length = side
+                shape.width = side
+            else:
+                print("Modification not supported for this shape.")
+        else:
+            print("Invalid index.")
+    except ValueError:
+        print("Please enter a valid integer.")
+
 
 def main():
     shapes = []
