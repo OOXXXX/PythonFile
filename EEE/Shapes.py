@@ -4,16 +4,16 @@ class Shape:
     def __init__(self, name):
         self.name = name
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def toString(self):
+    def __str__(self):
         return "Shape(Name: {})".format(self.name)
 
-    def getArea(self):
+    def get_area(self):
         raise NotImplementedError
 
-    def getVolume(self):
+    def get_volume(self):
         raise NotImplementedError
 
 class Point(Shape):
@@ -22,13 +22,13 @@ class Point(Shape):
         self.x = x
         self.y = y
 
-    def toString(self):
+    def __str__(self):
         return "Point(x: {}, y: {})".format(self.x, self.y)
 
-    def getArea(self):
+    def get_area(self):
         return 0
 
-    def getVolume(self):
+    def get_volume(self):
         return 0
 
 class Circle(Shape):
@@ -36,13 +36,13 @@ class Circle(Shape):
         super().__init__("Circle")
         self.radius = radius
 
-    def toString(self):
+    def __str__(self):
         return "Circle(radius: {})".format(self.radius)
 
-    def getArea(self):
+    def get_area(self):
         return math.pi * self.radius ** 2
 
-    def getVolume(self):
+    def get_volume(self):
         return 0
 
 class Cylinder(Shape):
@@ -51,13 +51,13 @@ class Cylinder(Shape):
         self.radius = radius
         self.height = height
 
-    def toString(self):
+    def __str__(self):
         return "Cylinder(radius: {}, height: {})".format(self.radius, self.height)
 
-    def getArea(self):
+    def get_area(self):
         return 2 * math.pi * self.radius * self.height + 2 * math.pi * self.radius ** 2
 
-    def getVolume(self):
+    def get_volume(self):
         return math.pi * self.radius ** 2 * self.height
 
 class Sphere(Shape):
@@ -65,13 +65,13 @@ class Sphere(Shape):
         super().__init__("Sphere")
         self.radius = radius
 
-    def toString(self):
+    def __str__(self):
         return "Sphere(radius: {})".format(self.radius)
 
-    def getArea(self):
+    def get_area(self):
         return 4 * math.pi * self.radius ** 2
 
-    def getVolume(self):
+    def get_volume(self):
         return (4/3) * math.pi * self.radius ** 3
 
 class Rectangle(Shape):
@@ -80,34 +80,31 @@ class Rectangle(Shape):
         self.length = length
         self.width = width
 
-    def toString(self):
+    def __str__(self):
         return "Rectangle(length: {}, width: {})".format(self.length, self.width)
 
-    def getArea(self):
+    def get_area(self):
         return self.length * self.width
 
-    def getVolume(self):
+    def get_volume(self):
         return 0
 
 class Square(Rectangle):
     def __init__(self, side):
         super().__init__(side, side)
-        self.name = "Square"
 
-    def toString(self):
+    def __str__(self):
         return "Square(side: {})".format(self.length)
 
 class Cube(Square):
     def __init__(self, side):
         super().__init__(side)
-        self.name = "Cube"
 
-    def getArea(self):
+    def get_area(self):
         return 6 * self.length ** 2
 
-    def getVolume(self):
+    def get_volume(self):
         return self.length ** 3
-
 
 def create_shape():
     print("Choose the type of shape to create:")
@@ -148,11 +145,9 @@ def create_shape():
         print("Invalid choice.")
         return None
 
-
 def print_shapes(shapes):
-    # 打印形状列表
     for shape in shapes:
-        print(shape.toString())
+        print(shape)
 
 def remove_shape(shapes):
     if not shapes:
@@ -168,7 +163,6 @@ def remove_shape(shapes):
             print("Invalid index.")
     except ValueError:
         print("Please enter a valid integer.")
-
 
 def modify_shape(shapes):
     if not shapes:
@@ -209,7 +203,6 @@ def modify_shape(shapes):
     except ValueError:
         print("Please enter a valid integer.")
 
-
 def main():
     shapes = []
     while True:
@@ -222,7 +215,8 @@ def main():
 
         if choice == '1':
             shape = create_shape()
-            shapes.append(shape)
+            if shape is not None:
+                shapes.append(shape)
         elif choice == '2':
             print_shapes(shapes)
         elif choice == '3':
