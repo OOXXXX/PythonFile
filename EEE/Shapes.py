@@ -37,7 +37,8 @@ class Circle(Shape):
         self.radius = radius
 
     def __str__(self):
-        return "Circle(radius: {})".format(self.radius)
+        area = self.get_area()
+        return "Circle(radius: {}), Area: {:.2f}".format(self.radius, area)
 
     def get_area(self):
         return math.pi * self.radius ** 2
@@ -52,7 +53,9 @@ class Cylinder(Shape):
         self.height = height
 
     def __str__(self):
-        return "Cylinder(radius: {}, height: {})".format(self.radius, self.height)
+        area = self.get_area()
+        volume = self.get_volume()
+        return "Cylinder(radius: {}, height: {}), Surface Area: {:.2f}, Volume: {:.2f}".format(self.radius, self.height, area, volume)
 
     def get_area(self):
         return 2 * math.pi * self.radius * self.height + 2 * math.pi * self.radius ** 2
@@ -66,7 +69,9 @@ class Sphere(Shape):
         self.radius = radius
 
     def __str__(self):
-        return "Sphere(radius: {})".format(self.radius)
+        area = self.get_area()
+        volume = self.get_volume()
+        return "Sphere(radius: {}), Surface Area: {:.2f}, Volume: {:.2f}".format(self.radius, area, volume)
 
     def get_area(self):
         return 4 * math.pi * self.radius ** 2
@@ -81,7 +86,8 @@ class Rectangle(Shape):
         self.width = width
 
     def __str__(self):
-        return "Rectangle(length: {}, width: {})".format(self.length, self.width)
+        area = self.get_area()
+        return "Rectangle(length: {}, width: {}), Area: {:.2f}".format(self.length, self.width, area)
 
     def get_area(self):
         return self.length * self.width
@@ -92,19 +98,32 @@ class Rectangle(Shape):
 class Square(Rectangle):
     def __init__(self, side):
         super().__init__(side, side)
+        self.side = side
 
     def __str__(self):
-        return "Square(side: {})".format(self.length)
+        area = self.get_area()
+        return "Square(side: {}), Area: {:.2f}".format(self.side, area)
 
 class Cube(Square):
     def __init__(self, side):
         super().__init__(side)
 
+    def __str__(self):
+        area = self.get_area()
+        volume = self.get_volume()
+        return "Cube(side: {}), Surface Area: {:.2f}, Volume: {:.2f}".format(self.side, area, volume)
+
     def get_area(self):
-        return 6 * self.length ** 2
+        return 6 * self.side ** 2
 
     def get_volume(self):
-        return self.length ** 3
+        return self.side ** 3
+
+def is_valid_input(value):
+    if value <= 0:
+        print("Invalid input. Value must be greater than 0.")
+        return False
+    return True
 
 def create_shape():
     print("Choose the type of shape to create:")
@@ -117,33 +136,31 @@ def create_shape():
     print("7. Cube")
     shape_choice = input("Enter your choice: ")
 
-    if shape_choice == '1':
-        x = float(input("Enter x coordinate: "))
-        y = float(input("Enter y coordinate: "))
-        return Point(x, y)
-    elif shape_choice == '2':
-        radius = float(input("Enter radius: "))
-        return Circle(radius)
-    elif shape_choice == '3':
-        radius = float(input("Enter radius: "))
-        height = float(input("Enter height: "))
-        return Cylinder(radius, height)
-    elif shape_choice == '4':
-        radius = float(input("Enter radius: "))
-        return Sphere(radius)
-    elif shape_choice == '5':
-        length = float(input("Enter length: "))
-        width = float(input("Enter width: "))
-        return Rectangle(length, width)
-    elif shape_choice == '6':
-        side = float(input("Enter side length: "))
-        return Square(side)
-    elif shape_choice == '7':
-        side = float(input("Enter side length: "))
-        return Cube(side)
-    else:
-        print("Invalid choice.")
-        return None
+    try:
+        if shape_choice == '1':
+            x = float(input("Enter x coordinate: "))
+            y = float(input("Enter y coordinate: "))
+            return Point(x, y)
+        elif shape_choice in ['2', '4']:
+            radius = float(input("Enter radius: "))
+            if is_valid_input(radius):
+                return Circle(radius) if shape_choice == '2' else Sphere(radius)
+        elif shape_choice in ['3', '5', '6', '7']:
+            if shape_choice == '3':  # Cylinder
+                radius = float(input("Enter radius: "))
+                height = float(input("Enter height: "))
+                if is_valid_input(radius) and is_valid_input(height):
+                    return Cylinder(radius, height)
+            else:  # Rectangle, Square, or Cube
+                length = float(input("Enter length: ")) if shape_choice in ['5', '6'] else float(input("Enter side length: "))
+                width = float(input("Enter width: ")) if shape_choice == '5' else length
+                if is_valid_input(length) and (is_valid_input(width) or shape_choice in ['6', '7']):
+                    return Rectangle(length, width) if shape_choice == '5' else (Square(length) if shape_choice == '6' else Cube(length))
+    except ValueError:
+        print("Please enter a valid number.")
+
+    print("Invalid choice or input.")
+    return None
 
 def print_shapes(shapes):
     for shape in shapes:
@@ -156,7 +173,7 @@ def remove_shape(shapes):
 
     print_shapes(shapes)
     try:
-        index = int(input("Enter the index of the shape to remove (starting from 0): "))
+        index = int(input("Enter the index of the shape to remove: "))
         if 0 <= index < len(shapes):
             del shapes[index]
         else:
@@ -171,7 +188,7 @@ def modify_shape(shapes):
 
     print_shapes(shapes)
     try:
-        index = int(input("Enter the index of the shape to modify (starting from 0): "))
+        index = int(input("Enter the index of the shape to modify: "))
         if 0 <= index < len(shapes):
             shape = shapes[index]
             if isinstance(shape, Point):
@@ -181,21 +198,25 @@ def modify_shape(shapes):
                 shape.y = y
             elif isinstance(shape, Circle) or isinstance(shape, Sphere):
                 radius = float(input("Enter new radius: "))
-                shape.radius = radius
+                if is_valid_input(radius):
+                    shape.radius = radius
             elif isinstance(shape, Cylinder):
                 radius = float(input("Enter new radius: "))
                 height = float(input("Enter new height: "))
-                shape.radius = radius
-                shape.height = height
-            elif isinstance(shape, Rectangle) or isinstance(shape, Square):
+                if is_valid_input(radius) and is_valid_input(height):
+                    shape.radius = radius
+                    shape.height = height
+            elif isinstance(shape, Rectangle) or isinstance(shape, Square) or isinstance(shape, Cube):
                 length = float(input("Enter new length: "))
-                width = float(input("Enter new width: "))
-                shape.length = length
-                shape.width = width
-            elif isinstance(shape, Cube):
-                side = float(input("Enter new side length: "))
-                shape.length = side
-                shape.width = side
+                if shape.__class__ == Rectangle:
+                    width = float(input("Enter new width: "))
+                    if is_valid_input(length) and is_valid_input(width):
+                        shape.length = length
+                        shape.width = width
+                else:  # Square or Cube
+                    if is_valid_input(length):
+                        shape.length = length
+                        shape.width = length
             else:
                 print("Modification not supported for this shape.")
         else:
