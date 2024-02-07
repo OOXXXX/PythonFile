@@ -162,9 +162,22 @@ def create_shape():
     print("Invalid choice or input.")
     return None
 
-def print_shapes(shapes):
-    for shape in shapes:
-        print(shape)
+
+def print_shapes(shapes, shape_name=None):
+    found = False
+    if shape_name:
+        for shape in shapes:
+            if shape.get_name() == shape_name:
+                print(shape)
+                found = True
+    else:
+        for shape in shapes:
+            print(shape)
+            found = True
+
+    if not found:
+        print(f"No shapes of type '{shape_name}' found.") if shape_name else print("No shapes to print.")
+
 
 def remove_shape(shapes):
     if not shapes:
@@ -229,9 +242,10 @@ def main():
     while True:
         print("1. Create a new shape")
         print("2. Print all shapes")
-        print("3. Remove a shape")
-        print("4. Modify a shape")
-        print("5. Exit")
+        print("3. Print shapes of a specific type")
+        print("4. Remove a shape")
+        print("5. Modify a shape")
+        print("6. Exit")
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -241,13 +255,17 @@ def main():
         elif choice == '2':
             print_shapes(shapes)
         elif choice == '3':
-            remove_shape(shapes)
+            shape_name = input("Enter the shape type to print (e.g., Circle, Square): ")
+            print_shapes(shapes, shape_name)
         elif choice == '4':
-            modify_shape(shapes)
+            remove_shape(shapes)
         elif choice == '5':
+            modify_shape(shapes)
+        elif choice == '6':
             break
         else:
             print("Invalid choice. Please try again.")
+
 
 if __name__ == "__main__":
     main()
