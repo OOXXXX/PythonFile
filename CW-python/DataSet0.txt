@@ -1,0 +1,11 @@
+Count Dracula, Mina, Lucy, Van Helsing
+3
+Count Dracula : V, Mina : H, Lucy : H, Van Helsing : H
+2
+Count Dracula, Mina
+Lucy, Van Helsing
+##
+1
+Count Dracula, Lucy
+Count Dracula : V, Lucy : H, Mina : V
+0
