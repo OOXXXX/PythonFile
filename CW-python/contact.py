@@ -1,18 +1,9 @@
-#!/usr/bin/env python3
-"""Analyse a vampire infiltration.
-   Vampire Hunting v1.4.1
-
-   Student number:
-"""
-
 import sys
 import os.path
 from format_list import format_list, format_list_or, str_time, is_initial, period_of_time, day_of_time, time_of_day
 
 
 # Section 2
-import os.path
-
 def file_exists(file_name):
     # 检查文件是否存在
     return os.path.isfile(file_name)
@@ -25,7 +16,7 @@ def parse_file(file_name):
     # 检查文件是否存在
     if not file_exists(file_name):
         print("Error found in file, aborting.")
-        return (participants, days)
+        sys.exit()  # 直接退出程序而不是返回空列表
 
     with open(file_name, 'r') as file:
         # 读取参与者名单，并去除空白字符
@@ -33,7 +24,11 @@ def parse_file(file_name):
         participants = [name.strip() for name in participants]
 
         # 读取天数
-        num_days = int(file.readline().strip())
+        try:
+            num_days = int(file.readline().strip())
+        except ValueError:
+            print("Error found in file, aborting.")
+            sys.exit()
 
         for _ in range(num_days):
             # 解析当天的测试结果
@@ -42,11 +37,20 @@ def parse_file(file_name):
             if test_line != "##":
                 test_entries = test_line.split(',')
                 for entry in test_entries:
-                    name, result = entry.split(':')
-                    tests[name.strip()] = result.strip() == 'V'
+                    try:
+                        name, result = entry.split(':')
+                        tests[name.strip()] = result.strip() == 'V'
+                    except ValueError:
+                        print("Error found in file, aborting.")
+                        sys.exit()
 
             # 解析当天的接触组
-            num_groups = int(file.readline().strip())
+            try:
+                num_groups = int(file.readline().strip())
+            except ValueError:
+                print("Error found in file, aborting.")
+                sys.exit()
+
             groups = []
             for _ in range(num_groups):
                 group = file.readline().strip().split(',')
@@ -67,8 +71,7 @@ def pretty_print_infiltration_data(data):
     print(f"{len(days)} days with the following participants: {', '.join(participants[:-1])} and {participants[-1]}.")
 
     for i, (tests, groups) in enumerate(days, start=1):
-        print(
-            f"Day {i} has {len(tests)} vampire test{'s' if len(tests) > 1 else ''} and {len(groups)} contact group{'s' if len(groups) > 1 else ''}.")
+        print(f"Day {i} has {len(tests)} vampire test{'s' if len(tests) > 1 else ''} and {len(groups)} contact group{'s' if len(groups) > 1 else ''}.")
 
         print(f"  {len(tests)} test{'s' if len(tests) > 1 else ''}")
         for participant in sorted(tests.keys()):
@@ -85,11 +88,20 @@ def pretty_print_infiltration_data(data):
 # Section 5
 def contacts_by_time(participant, time, contacts_daily):
     day = (time - 1) // 2  # 计算出是哪一天
-    if time % 2 == 0:
-        # PM时间段，寻找接触组
-        for group in contacts_daily[day]:
-            if participant in group:
-                return group
+    time_of_day = time % 2  # 判断是AM还是PM
+
+    if day < len(contacts_daily):
+        # AM时间段
+        if time_of_day == 1:
+            for group in contacts_daily[day]:
+                if participant in group:
+                    return group
+        # PM时间段
+        elif time_of_day == 0:
+            for group in contacts_daily[day]:
+                if participant in group:
+                    return group
+
     return []
 
 
@@ -106,8 +118,12 @@ def pretty_print_vampire_knowledge(vk):
 
     print(f"  Humans: {format_list(humans) if humans else '(None)'}")
     print(f"  Unclear individuals: {format_list(unclear) if unclear else '(None)'}")
-    print(f"  Vampires: {format_list(vampires) if vampires else '(None)'}")
 
+    # 仅在吸血鬼数量大于1时显示 "Vampires" 部分
+    if len(vampires) > 1:
+        print(f"  Vampires: {format_list(vampires) if vampires else '(None)'}")
+    elif len(vampires) == 1:
+        print(f"  Vampire: {vampires[0]}")
 
 # Done by professors
 def pretty_print_vks(vks):
@@ -164,6 +180,27 @@ def update_vk_with_humans_backward(vk_pre, vk_post):
 
     return vk_pre
 
+def pretty_print_vampire_knowledge(vk):
+    humans = [name for name, status in vk.items() if status == "H"]
+    vampires = [name for name, status in vk.items() if status == "V"]
+    unclear = [name for name, status in vk.items() if status == "U"]
+
+    if len(humans) == 1:
+        print(f"  Human: {humans[0]}")
+    else:
+        print(f"  Humans: {format_list(humans) if humans else '(None)'}")
+
+    if len(unclear) == 1:
+        print(f"  Unclear individual: {unclear[0]}")
+    else:
+        print(f"  Unclear individuals: {format_list(unclear) if unclear else '(None)'}")
+
+    if len(vampires) == 1:
+        print(f"  Vampire: {vampires[0]}")
+    elif len(vampires) > 1:
+        print(f"  Vampires: {format_list(vampires)}")
+    else:
+        print(f"  Vampires: (None)")
 
 # Section 10
 def update_vk_overnight(vk_pre, vk_post):
@@ -245,7 +282,7 @@ def find_infection_windows(vks):
                     start = t
                     break
 
-            # 找到首次被确认吸血鬼的时间
+            # 找到首次被确认吸血
             for t in range(start + 1, len(vks)):
                 if vks[t][participant] == "V":
                     end = t
@@ -254,7 +291,6 @@ def find_infection_windows(vks):
             windows[participant] = (start, end)
 
     return windows
-
 
 def pretty_print_infection_windows(iw):
     for participant in sorted(iw.keys()):
@@ -282,7 +318,7 @@ def find_potential_sires(iw, groups):
                 if contacts:
                     sires[vampire].append((pm_time, contacts))
                 else:
-                    sires[vampire].append((pm_time, [(None)]))
+                    sires[vampire].append((pm_time, [(None)]))  # 如果吸血鬼当天没有任何接触，添加一个空记录
 
     return sires
 
@@ -291,7 +327,7 @@ def pretty_print_potential_sires(ps):
         print(f"  {vampire}:")
         for time, contacts in ps[vampire]:
             time_str = str_time(time)
-            if contacts[0] == (None):
+            if not contacts or contacts == [(None)]:
                 print(f"    On {time_str}, met with (None).")
             else:
                 for group in contacts:
@@ -329,10 +365,8 @@ def trim_potential_sires(ps, vks):
             # 如果新的联系人列表不为空，则添加到精简后的结果中
             if new_contacts:
                 trimmed_ps[vampire].append((time, new_contacts))
-
-        # 如果某个吸血鬼没有任何有效的联系人，则添加 (None)
-        if not trimmed_ps[vampire]:
-            trimmed_ps[vampire].append((None))
+            else:
+                trimmed_ps[vampire].append((time, [(None)]))  # 如果所有联系人都被过滤掉了，保留空记录
 
     return trimmed_ps
 
@@ -487,6 +521,7 @@ def find_hidden_vampires(ss, iw, vamps, vks):
                     changes += 1
 
     return (vks, changes)
+
 
 # Section 21; done by professor
 def cyclic_analysis2(vks, groups):
@@ -662,3 +697,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
