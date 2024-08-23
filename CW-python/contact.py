@@ -2,10 +2,9 @@ import sys
 import os.path
 from format_list import format_list, format_list_or, str_time, is_initial, period_of_time, day_of_time, time_of_day
 
-
 # Section 2
 def file_exists(file_name):
-    # 检查文件是否存在
+    # Returns True if the file exists, False otherwise
     return os.path.isfile(file_name)
 
 # Section 3
@@ -13,17 +12,16 @@ def parse_file(file_name):
     participants = []
     days = []
 
-    # 检查文件是否存在
     if not file_exists(file_name):
         print("Error found in file, aborting.")
-        sys.exit()  # 直接退出程序而不是返回空列表
+        sys.exit()
 
     with open(file_name, 'r') as file:
-        # 读取参与者名单，并去除空白字符
+        # Read and clean participants' names
         participants = file.readline().strip().split(',')
         participants = [name.strip() for name in participants]
 
-        # 读取天数
+        # Read the number of days, and handle invalid data
         try:
             num_days = int(file.readline().strip())
         except ValueError:
@@ -31,7 +29,7 @@ def parse_file(file_name):
             sys.exit()
 
         for _ in range(num_days):
-            # 解析当天的测试结果
+            # Read and parse the test results for the day
             tests = {}
             test_line = file.readline().strip()
             if test_line != "##":
@@ -44,7 +42,7 @@ def parse_file(file_name):
                         print("Error found in file, aborting.")
                         sys.exit()
 
-            # 解析当天的接触组
+            # Read and parse the number of contact groups
             try:
                 num_groups = int(file.readline().strip())
             except ValueError:
@@ -57,27 +55,31 @@ def parse_file(file_name):
                 group = [name.strip() for name in group]
                 groups.append(group)
 
-            # 将测试结果和接触组存入days列表
+            # Store the day's test results and groups
             days.append((tests, groups))
 
-    return (participants, days)
+    return participants, days
 
 
 # Section 4
 def pretty_print_infiltration_data(data):
     participants, days = data
 
-    print(f"Vampire Infiltration Data")
-    print(f"{len(days)} days with the following participants: {', '.join(participants[:-1])} and {participants[-1]}.")
+    print("Vampire Infiltration Data")
+    print(f"{len(days)} days with the following participants: \
+{format_list(participants)}.")
 
     for i, (tests, groups) in enumerate(days, start=1):
-        print(f"Day {i} has {len(tests)} vampire test{'s' if len(tests) > 1 else ''} and {len(groups)} contact group{'s' if len(groups) > 1 else ''}.")
+        print(f"Day {i} has {len(tests)} vampire test{'s' if len(tests) > 1 else ''} \
+and {len(groups)} contact group{'s' if len(groups) > 1 else ''}.")
 
+        # Print test results
         print(f"  {len(tests)} test{'s' if len(tests) > 1 else ''}")
         for participant in sorted(tests.keys()):
             result = "vampire!" if tests[participant] else "human."
             print(f"    {participant} is a {result}")
 
+        # Print contact groups
         print(f"  {len(groups)} group{'s' if len(groups) > 1 else ''}")
         for group in groups:
             print(f"    {', '.join(group)}")
@@ -87,45 +89,43 @@ def pretty_print_infiltration_data(data):
 
 # Section 5
 def contacts_by_time(participant, time, contacts_daily):
-    day = (time - 1) // 2  # 计算出是哪一天
-    time_of_day = time % 2  # 判断是AM还是PM
+    day = (time - 1) // 2  # Calculate which day
+    time_of_day = time % 2  # Determine if it is AM or PM
 
     if day < len(contacts_daily):
-        # AM时间段
-        if time_of_day == 1:
-            for group in contacts_daily[day]:
-                if participant in group:
-                    return group
-        # PM时间段
-        elif time_of_day == 0:
-            for group in contacts_daily[day]:
-                if participant in group:
-                    return group
+        for group in contacts_daily[day]:
+            if participant in group:
+                return group
 
     return []
 
 
 # Section 6
 def create_initial_vk(participants):
-    vk = {participant: "U" for participant in participants}
-    return vk
+    # Initially, all participants have an unknown status
+    return {participant: "U" for participant in participants}
 
 
+# Pretty-print the vampire knowledge
 def pretty_print_vampire_knowledge(vk):
     humans = [name for name, status in vk.items() if status == "H"]
     vampires = [name for name, status in vk.items() if status == "V"]
     unclear = [name for name, status in vk.items() if status == "U"]
 
+    # Print human participants
     print(f"  Humans: {format_list(humans) if humans else '(None)'}")
+
+    # Print unclear participants
     print(f"  Unclear individuals: {format_list(unclear) if unclear else '(None)'}")
 
-    # 仅在吸血鬼数量大于1时显示 "Vampires" 部分
+    # Print vampire participants, handling singular/plural correctly
     if len(vampires) > 1:
         print(f"  Vampires: {format_list(vampires) if vampires else '(None)'}")
     elif len(vampires) == 1:
         print(f"  Vampire: {vampires[0]}")
 
-# Done by professors
+
+# Pretty-print the full vampire knowledge table
 def pretty_print_vks(vks):
     print(f'Vampire Knowledge Tables')
     for i in range(len(vks)):
@@ -180,27 +180,33 @@ def update_vk_with_humans_backward(vk_pre, vk_post):
 
     return vk_pre
 
+
+# Pretty-print the vampire knowledge (customized for Section 9)
 def pretty_print_vampire_knowledge(vk):
     humans = [name for name, status in vk.items() if status == "H"]
     vampires = [name for name, status in vk.items() if status == "V"]
     unclear = [name for name, status in vk.items() if status == "U"]
 
+    # Print human participants
     if len(humans) == 1:
         print(f"  Human: {humans[0]}")
     else:
         print(f"  Humans: {format_list(humans) if humans else '(None)'}")
 
+    # Print unclear participants
     if len(unclear) == 1:
         print(f"  Unclear individual: {unclear[0]}")
     else:
         print(f"  Unclear individuals: {format_list(unclear) if unclear else '(None)'}")
 
+    # Print vampire participants
     if len(vampires) == 1:
         print(f"  Vampire: {vampires[0]}")
     elif len(vampires) > 1:
         print(f"  Vampires: {format_list(vampires)}")
     else:
         print(f"  Vampires: (None)")
+
 
 # Section 10
 def update_vk_overnight(vk_pre, vk_post):
@@ -218,10 +224,9 @@ def update_vk_overnight(vk_pre, vk_post):
 
     return vk_post
 
-
 # Section 11
 def update_vk_with_contact_group(vk_pre, contacts, vk_post):
-    # 检查错误并传播吸血鬼状态
+    # Check mistake
     for participant, status in vk_pre.items():
         if status == "V":
             if vk_post[participant] == "H":
@@ -232,7 +237,7 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
             print("Error found in data: humans cannot be vampires; aborting.")
             sys.exit()
 
-    # 处理接触组
+    # deal with involved participant
     all_participants = set(vk_pre.keys())
     involved_participants = set()
 
@@ -243,7 +248,7 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
                 sys.exit()
             involved_participants.add(participant)
 
-        # 检查是否为全人类组
+        # check if all human group
         all_human = all(vk_pre[p] == "H" for p in group)
         if all_human:
             for participant in group:
@@ -252,7 +257,7 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
                     sys.exit()
                 vk_post[participant] = "H"
 
-    # 处理未参与接触组的参与者
+    # deal with not involved participant
     for participant in all_participants - involved_participants:
         if vk_pre[participant] == "H":
             if vk_post[participant] == "V":
@@ -262,27 +267,23 @@ def update_vk_with_contact_group(vk_pre, contacts, vk_post):
 
     return vk_post
 
-
 # Section 12
 def find_infection_windows(vks):
     windows = {}
-
-    # 获取最后一个时间段的 vk 结构
     last_vk = vks[-1]
 
-    # 找出所有最后一个时间段的吸血鬼
     for participant, status in last_vk.items():
         if status == "V":
             start = 0
             end = len(vks) - 1
 
-            # 回溯找到最后的确切人类状态
+            # Find the last confirmed human status
             for t in range(len(vks) - 1, -1, -1):
                 if vks[t][participant] == "H":
                     start = t
                     break
 
-            # 找到首次被确认吸血
+            # Find the first confirmed vampire status
             for t in range(start + 1, len(vks)):
                 if vks[t][participant] == "V":
                     end = t
@@ -292,12 +293,17 @@ def find_infection_windows(vks):
 
     return windows
 
+# Pretty-print the infection windows
 def pretty_print_infection_windows(iw):
     for participant in sorted(iw.keys()):
         start, end = iw[participant]
         start_time = str_time(start)
         end_time = str_time(end)
-        print(f"  {participant} was turned between {start_time} and {end_time}.")
+
+        if start == 0:
+            print(f"  {participant} was turned between {start_time} and {end_time}.")
+        else:
+            print(f"  {participant} was turned between day {start_time} and day {end_time}.")
 
 
 # Section 13
@@ -306,28 +312,30 @@ def find_potential_sires(iw, groups):
 
     for vampire, (start, end) in iw.items():
         sires[vampire] = []
-
         for day in range(start + 1, end + 1):
-            pm_time = 2 * day  # PM时间为2 * day
-            if pm_time - 1 < len(groups):
-                pm_groups = groups[pm_time - 1]
+            pm_time = 2 * day  # PM time is calculated as 2 * day
 
-                # 查找吸血鬼当天的接触组
-                contacts = [group for group in pm_groups if vampire in group]
+            if pm_time - 1 < len(groups):
+                current_groups = groups[pm_time - 1]
+
+                contacts = [group for group in current_groups if vampire in group]
 
                 if contacts:
                     sires[vampire].append((pm_time, contacts))
                 else:
-                    sires[vampire].append((pm_time, [(None)]))  # 如果吸血鬼当天没有任何接触，添加一个空记录
+                    sires[vampire].append((pm_time, [(None)]))
+            else:
+                sires[vampire].append((pm_time, [(None)]))
 
     return sires
 
+# Pretty-print potential sires
 def pretty_print_potential_sires(ps):
     for vampire in sorted(ps.keys()):
         print(f"  {vampire}:")
         for time, contacts in ps[vampire]:
             time_str = str_time(time)
-            if not contacts or contacts == [(None)]:
+            if contacts == [(None)]:
                 print(f"    On {time_str}, met with (None).")
             else:
                 for group in contacts:
@@ -346,27 +354,22 @@ def trim_potential_sires(ps, vks):
             new_contacts = []
 
             for group in contacts:
+                if group is None:
+                    continue
+
                 trimmed_group = []
                 for participant in group:
-                    # 去除吸血鬼自己
-                    if participant == vampire:
+                    if participant == vampire or vks[time][participant] == "H":
                         continue
-
-                    # 去除已确认是人类的参与者
-                    if vks[time][participant] == "H":
-                        continue
-
                     trimmed_group.append(participant)
 
-                # 如果精简后的组不为空，则添加到新的联系人组中
                 if trimmed_group:
                     new_contacts.append(trimmed_group)
 
-            # 如果新的联系人列表不为空，则添加到精简后的结果中
             if new_contacts:
                 trimmed_ps[vampire].append((time, new_contacts))
             else:
-                trimmed_ps[vampire].append((time, [(None)]))  # 如果所有联系人都被过滤掉了，保留空记录
+                trimmed_ps[vampire].append((time, [(None)]))
 
     return trimmed_ps
 
@@ -384,10 +387,8 @@ def trim_infection_windows(iw, ps):
                 new_end = max(sire_times)
                 new_iw[vampire] = (new_start, new_end)
             else:
-                # 如果没有潜在的感染者，窗口收紧为 (0, 0)
                 new_iw[vampire] = (0, 0)
         else:
-            # 保持原来的感染窗口
             new_iw[vampire] = (start, end)
 
     return new_iw
@@ -398,40 +399,44 @@ def update_vks_with_windows(vks, iw):
     changes = 0
 
     for vampire, (start, end) in iw.items():
-        # 在窗口开始前，吸血鬼应该是人类
+        # Check if the vampire status is incorrect before the infection window starts
         for t in range(0, start + 1):
             if vks[t][vampire] == "V":
-                print("Error found in data: humans cannot be vampires; aborting.")
-                sys.exit()
-            if vks[t][vampire] == "U":
-                vks[t][vampire] = "H"
-                changes += 1
+                print(f"Error found in data: humans cannot be vampires; Vampire: {vampire}, Time: {t}")
+                return vks, changes  # Do not exit the program, continue to see where the issue is
 
-        # 在窗口结束后，吸血鬼应该是吸血鬼
+        # After the infection window ends, the individual should be a vampire
         for t in range(end, len(vks)):
             if vks[t][vampire] == "H":
-                print("Error found in data: vampires cannot be humans; aborting.")
-                sys.exit()
+                print(f"Error found in data: vampires cannot be humans; Vampire: {vampire}, Time: {t}")
+                return vks, changes  # Do not exit the program, continue running
+
             if vks[t][vampire] == "U":
                 vks[t][vampire] = "V"
                 changes += 1
 
-    return (vks, changes)
+    return vks, changes
 
 
-# Section 17; done by professors
+# Section 17
 def cyclic_analysis(vks, iw, ps):
     count = 0
     changes = 1
-    while (changes != 0):
+    max_iterations = 100  # Set a maximum iteration count to prevent infinite loops
+
+    while changes != 0 and count < max_iterations:
         ps = trim_potential_sires(ps, vks)
         iw = trim_infection_windows(iw, ps)
-        (vks, changes) = update_vks_with_windows(vks, iw)
-        count = count + 1
-    return (vks, iw, ps, count)
+        vks, changes = update_vks_with_windows(vks, iw)
+        count += 1
+
+    if count >= max_iterations:
+        print("Warning: cyclic_analysis reached maximum iterations without converging.")
+
+    return vks, iw, ps, count
 
 
-# Section 18: vampire strata
+# Section 18
 def vampire_strata(iw):
     originals = set()
     unclear_vamps = set()
@@ -445,16 +450,17 @@ def vampire_strata(iw):
         else:
             unclear_vamps.add(vampire)
 
-    return (originals, unclear_vamps, newborns)
+    return originals, unclear_vamps, newborns
 
 
+# Pretty-print the vampire strata
 def pretty_print_vampire_strata(originals, unclear_vamps, newborns):
     print(f"  Original vampires: {', '.join(sorted(originals)) if originals else '(None)'}")
     print(f"  Unknown strata vampires: {', '.join(sorted(unclear_vamps)) if unclear_vamps else '(None)'}")
     print(f"  Newborn vampires: {', '.join(sorted(newborns)) if newborns else '(None)'}")
 
 
-# Section 19: vampire sire sets
+# Section 19
 def calculate_sire_sets(ps):
     ss = {}
 
@@ -464,12 +470,14 @@ def calculate_sire_sets(ps):
             if time is not None:
                 for group in groups:
                     sires.update(group)
-        # 移除吸血鬼自己
+        # Remove the vampire themselves from the sire set
         sires.discard(vampire)
         ss[vampire] = sires
 
     return ss
 
+
+# Pretty-print the sire sets
 def pretty_print_sire_sets(ss, iw, vamps, newb):
     if newb:
         print("  Newborn vampires:")
@@ -491,7 +499,7 @@ def pretty_print_sire_sets(ss, iw, vamps, newb):
             print(f"    {vampire} could have been sired by {sire_str} between {str_time(start)} and {str_time(end)}.")
 
 
-# Section 20: vampire sire sets
+# Section 20
 def find_hidden_vampires(ss, iw, vamps, vks):
     changes = 0
 
@@ -499,10 +507,10 @@ def find_hidden_vampires(ss, iw, vamps, vks):
         sires = ss[vampire]
 
         if len(sires) == 1:
-            sire = next(iter(sires))  # 唯一的感染者
+            sire = next(iter(sires))  # Get the only potential sire
             start, end = iw[vampire]
 
-            # 将感染者的状态传播到感染窗口的末尾
+            # Propagate the sire's vampire status forward
             for t in range(end, len(vks)):
                 if vks[t][sire] == "H":
                     print("Error found in data: vampires cannot be humans; aborting.")
@@ -511,7 +519,7 @@ def find_hidden_vampires(ss, iw, vamps, vks):
                     vks[t][sire] = "V"
                     changes += 1
 
-            # 确保感染者在感染窗口前一个时间点也是吸血鬼
+            # Ensure the sire was a vampire right before the infection window ends
             if end > 0:
                 if vks[end - 1][sire] == "H":
                     print("Error found in data: vampires cannot be humans; aborting.")
@@ -520,8 +528,7 @@ def find_hidden_vampires(ss, iw, vamps, vks):
                     vks[end - 1][sire] = "V"
                     changes += 1
 
-    return (vks, changes)
-
+    return vks, changes
 
 # Section 21; done by professor
 def cyclic_analysis2(vks, groups):
@@ -697,6 +704,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
